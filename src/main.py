@@ -11,7 +11,8 @@ if __name__ == '__main__':
     # Объединяем и фильтруем корректные транзакции
     list_transactions = merge_and_filter_transaction_data(data_transactions)
 
-    number_cards = 72731966109147704472 #int(input("Введите номер карты клиента для вывода истории операций: "))
+    # Вводим номер карты или счёта клиент
+    number_cards = int(input("Введите номер карты или счёта клиента для вывода истории операций: "))
 
     # Получаем id-клиента и печатаем последние 5 операций клиента
     get_history_transaction_clients(list_transactions, number_cards)
