@@ -65,14 +65,13 @@ def check_and_filter_transactions(transaction: dict, number_card_client: int) ->
 
     if transaction["state"] == "EXECUTED":
         if 'from' in transaction.keys() and 'to' not in transaction.keys():
-            if int(transaction['from'][transaction['from'].rfind(" "):]) == number_card_client:
+            if number_card_client in transaction['from']:
                 return True
         elif 'to' in transaction.keys() and 'from' not in transaction.keys():
-            if int(transaction['to'][transaction['to'].rfind(" "):]) == number_card_client:
+            if number_card_client in transaction['to']:
                 return True
         elif 'from' in transaction.keys() and 'to' in transaction.keys():
-            if (int(transaction['to'][transaction['to'].rfind(" "):]) == number_card_client or
-                    int(transaction['from'][transaction['from'].rfind(" "):]) == number_card_client):
+            if number_card_client in transaction['to'] or number_card_client in transaction['from']:
                 return True
     return False
 

@@ -2,7 +2,7 @@
 name = "coursework-4"
 version = "0.1.0"
 description = ""
-authors = ["Valera K <vk1337atliberty@gmail.com>"]
+authors = ["Valera K <vk1337    patliberty@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
