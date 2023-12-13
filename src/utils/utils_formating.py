@@ -12,15 +12,15 @@ def format_payment_system_sender(operation: dict) -> str:
     """Функция принимает словарь с данными по операции и возвращает информацию о платёжной системе отправителя
      в соответствующем виде"""
 
-    return operation['from'][:operation['from'].find(' ')]
+    return operation['from'][:operation['from'].rfind(' ')]
 
 
 def format_card_number_sender(operation: dict) -> str:
     """Функция принимает словарь с данными по операции и возвращает информацию о номере карты отправителя
      в соответствующем виде"""
 
-    card_number = operation['from'][operation['from'].find(' ') + 1:]
-    encrypted_number_card = card_number[:4] + " " + card_number[3:5] + "**" + " " + "****" + card_number[-4:]
+    card_number = operation['from'][operation['from'].rfind(' ') + 1:]
+    encrypted_number_card = card_number[:4] + " " + card_number[3:5] + "**" + " " + "****" + " " + card_number[-4:]
 
     return encrypted_number_card
 
@@ -29,7 +29,7 @@ def format_card_number_recipient(operation: dict) -> str:
     """Функция принимает словарь с данными по операции и возвращает информацию о номере карты получателя
      в соответствующем виде"""
 
-    card_number = operation['to'][operation['to'].find(' ') + 1:]
+    card_number = operation['to'][operation['to'].rfind(' ') + 1:]
 
     return str("**") + card_number[-4:]
 
@@ -38,7 +38,7 @@ def format_payment_system_recipient(operation: dict) -> str:
     """Функция принимает словарь с данными по операции и возвращает информацию о платёжной системе получателя
      в соответствующем виде"""
 
-    return operation['to'][:operation['to'].find(' ')]
+    return operation['to'][:operation['to'].rfind(' ')]
 
 
 def formatting_text_transaction(operation: dict) -> str:

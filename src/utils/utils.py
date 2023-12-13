@@ -79,9 +79,6 @@ def check_dict_correct(info_operation, transaction_temp=None, deposit_temp=None)
     Функция сравнивает структуру и названия ключей и возвращает bool в зависимости от того
     подходит полученный словарь к одному из шаблонов или нет"""
 
-    # Функция-проверка на то является ли аргумент словарём (нужна для визуального уменьшения кода и простоты чтения)
-    is_dict = lambda dict_: isinstance(dict_, dict)
-
     # Создаём переменные со списком ключей (нужно для визуального уменьшения кода и простоты чтения)
     keys1, keys2, keys3 = info_operation.keys(), transaction_temp.keys(), deposit_temp.keys()
     # Проверяем идентичен ли полученный список ключей из операции шаблонам
@@ -93,11 +90,14 @@ def check_dict_correct(info_operation, transaction_temp=None, deposit_temp=None)
     for key in keys1:
         # Если значение нашего ключа и ключа из шаблона - словарь, то проваливаемся внутрь
         # и проверяем этот словарь на предмет идентичности
-        if is_dict(info_operation[key]) and (is_dict(transaction_temp[key]) or is_dict(deposit_temp[key])):
+        if isinstance(info_operation[key], dict) and (isinstance(transaction_temp[key], dict)
+                                                      or isinstance(deposit_temp[key], dict)):
             if not check_dict_correct(info_operation[key], transaction_temp[key], deposit_temp[key]):
                 return False
-        # Если значение нашего ключа и ключа из шаблона - не словарь, то идём дальше по ключам
-        elif not is_dict(info_operation[key]) and not is_dict(transaction_temp[key]) or not is_dict(deposit_temp[key]):
+        # Если значение нашего ключа и ключа из шаблона - не словарь и имеет один тип данных, то идём дальше по ключам
+        elif (not isinstance(info_operation[key], dict) and not isinstance(transaction_temp[key], dict)
+              or not isinstance(deposit_temp[key], dict)
+              and type(info_operation[key]) is (type(transaction_temp[key]) or type(deposit_temp[key]))):
             continue
         # Если значение нашего ключа - один тип данных, а значение ключа из шаблона - другой тип данных,
         # то возвращаем False
@@ -112,19 +112,22 @@ def check_and_filter_operations(operation: dict, number_card_client: str) -> boo
     и возвращает True/False в зависимости от того присутствует ли в этой операции карта клиента
     (как отправителя или как получателя), а также по фактору того, что операция была выполнена"""
 
-    # Проверка на то, выполнена ли была операция
-    if operation["state"] == "EXECUTED":
-        # Если операция выполнена и это открытие вклада
-        if 'to' in operation.keys() and 'from' not in operation.keys():
-            if number_card_client in operation['to']:
-                return True
-        # Если операция выполнена и это открытие транзакция
-        elif 'from' in operation.keys() and 'to' in operation.keys():
-            if number_card_client in operation['to'] or number_card_client in operation['from']:
-                return True
-    # Если операция была не выполнена и/или операция не имеет отношения к клиенту, то возвращаем False
+    if number_card_client != "" and number_card_client.isdigit():
+        # Проверка на то, выполнена ли была операция
+        if operation["state"] == "EXECUTED":
+            # Если операция выполнена и это открытие вклада
+            if 'to' in operation.keys() and 'from' not in operation.keys():
+                if number_card_client in operation['to']:
+                    return True
+            # Если операция выполнена и это открытие транзакция
+            elif 'from' in operation.keys() and 'to' in operation.keys():
+                if number_card_client in operation['to'] or number_card_client in operation['from']:
+                    return True
+        # Если операция была не выполнена и/или операция не имеет отношения к клиенту, то возвращаем False
+        else:
+            return False
     else:
-        return False
+        return True
 
 
 def get_history_transaction_clients(list_transaction: list, number_card_client: str) -> str:
@@ -132,31 +135,29 @@ def get_history_transaction_clients(list_transaction: list, number_card_client: 
     - принадлежности к клиенту (по id)
     - по статусу транзакции - выполненные (EXECUTED)
     Затем сортирует их по дате (от старой к новой) и возвращает список транзакций клиента.
+    Если номер карты не передан, то возвращается 5 последних операций.
     В случае того, что операции не найдены (или не подходят по условию, то выводим информационное сообщение)"""
 
-    # Проходим по имеющимся операциям и отфильтровываем те, что не относятся к операции клиента или к выполненным
-    list_transaction = list(filter(lambda transaction: check_and_filter_operations(transaction, number_card_client),
-                              list_transaction))
-
-    # Если список операций пуст, то выводим информационное сообщение, о том
-    if not list_transaction:
-        return "Данный клиент не совершал операции согласно имеющимся данным"
+    if number_card_client != "" and number_card_client.isdigit():
+        # Проходим по имеющимся операциям и отфильтровываем те, что не относятся к операции клиента или к выполненным
+        list_transaction = list(filter(lambda transaction: check_and_filter_operations(transaction, number_card_client),
+                                list_transaction))
 
     list_transaction = sorted(list_transaction,
-                              key=lambda d: datetime.strptime(d["date"], "%Y-%m-%dT%H:%M:%S.%f"))
+                              key=lambda d: datetime.strptime(d["date"], "%Y-%m-%dT%H:%M:%S.%f"), reverse=True)
 
     # Если список операций пуст, то выводим информационное сообщение, о том
     if not list_transaction:
         return "Данный клиент не совершал операции согласно имеющимся данным"
 
-    text = "\n\n".join(([output_text(transaction) for transaction in list_transaction]))
+    text = "\n\n".join(([output_text(transaction) for transaction in list_transaction][:5]))
     return text
 
 
 def print_history_operations_client(number: str, path_for_zip_file: str) -> str:
-    """Функция принимает аргументом номер карты клиента и осуществляет поиск операций в которых участвовал клиент,
-     по имеющимся json-файлам. Функция возвращает либо информационное сообщение, если на каком-то этапе поиск не удался,
-     либо список этих операций"""
+    """Функция принимает аргументом номер карты клиента и абсолютный путь до файла с историей операций
+     и осуществляет поиск операций в которых участвовал клиент, по имеющимся json-файлам. Функция возвращает
+     либо информационное сообщение, если на каком-то этапе поиск не удался, либо список этих операций"""
 
     # Получаем информацию о транзакциях из json-файлов в архиве
     data_transactions = get_list_info_from_zip(path_for_zip_file)
