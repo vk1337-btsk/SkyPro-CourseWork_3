@@ -3,16 +3,19 @@ from datetime import datetime
 
 
 def list_command(list_operations: list, command: str) -> str:
+    """В функцию подаётся два аргумента: список с информацией об операции и команда. Функция возвращает
+    либо информационное сообщение, если на каком-то этапе возникла ошибка, либо результат этой команды"""
+
     list_commands = {'help': [None, "Распечатать все команды и их функционал."],
-                     "total": [info_operations_amount(list_operations), "Вывести сумму всех операций:"],
-                     "max": [info_max_amount(list_operations), "Вывести наибольшую сумму операции:"],
-                     "min": [info_min_amount(list_operations), "Вывести наименьшую сумму операции:"],
+                     "total": [info_operations_amount(list_operations), "Вывести сумму всех операций."],
+                     "max": [info_max_amount(list_operations), "Вывести наибольшую сумму операции."],
+                     "min": [info_min_amount(list_operations), "Вывести наименьшую сумму операции."],
                      "account_max_count_operation":
                          [info_max_count_operations(list_operations), "Вывести счёт с наибольшим количеством "
-                                                                      "операций:"],
+                                                                      "операций."],
                      "count_unique_account":
                          [info_count_unique_bank_account(list_operations), "Вывести количество уникальных счетов, "
-                                                                           "которые осуществляли операции:"]
+                                                                           "которые осуществляли операции."]
                      }
     if command.strip() != 'help':
         if command in list_commands.keys():
